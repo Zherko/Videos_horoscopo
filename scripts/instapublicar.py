@@ -7,6 +7,8 @@ Aleatorio con memoria y sin repeticiones: cada fecha baraja los 12 signos
 anterior (4/8, inevitable publicando 8 de 12 al día) y los 2 reels siempre
 entre los menos usados → el reel nunca repite el de ayer. Dentro de cada
 pase los 4 signos son distintos (reel nunca en sus stories).
+El reel sube con portada propia ({fecha}-{signo}-cover.jpg, frame t=3s);
+sin cover cae a la miniatura automática. Stories sin portada.
 Sin LLM: caption reconstruido del corpus (vendor/corpus) con las mismas
 fórmulas del generador (generar-reel.mjs).
 
@@ -149,6 +151,8 @@ def main():
             sys.exit(1)
         if kind == 'REELS':
             print(f'Caption ({len(caption)} chars)')
+            cover = ROOT / f'{fecha}-{slug}-cover.jpg'
+            print(f'Cover: {cover.name}' if cover.exists() else 'Cover: auto (sin cover.jpg)')
         if a.dry_run:
             print('[dry-run] no se publica')
 
@@ -182,7 +186,8 @@ def main():
         for kind, slug, caption in plan:
             video = str(ROOT / f'{fecha}-{slug}.mp4')
             if kind == 'REELS':
-                m = cl.clip_upload(video, caption)
+                cover = ROOT / f'{fecha}-{slug}-cover.jpg'
+                m = cl.clip_upload(video, caption, thumbnail=(str(cover) if cover.exists() else None))
                 print(f'✅ Reel {slug}: pk={m.pk}')
             else:
                 cl.video_upload_to_story(video)
