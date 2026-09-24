@@ -1,6 +1,7 @@
 # Autopublica en Instagram vía instagrapi (API privada): 1 reel + 3 stories.
 # Dos pases al día (10:00 y 16:00 Madrid = 08:00 y 14:00 UTC en verano;
 # en invierno caen 09:00 y 15:00 locales). Al día: 2 reels + 6 stories.
+# El reel sube con portada propia (frame t=3s de su MP4); sin cover, auto.
 # Requiere secret: IG_SESSION (contenido de session.json generado en local).
 # La vía oficial (scripts/autopublicar.mjs, Graph API) queda aparcada hasta que
 # prospere la apelación de la cuenta de desarrollador (ver git log).
@@ -54,6 +55,11 @@ jobs:
         run: |
           pip install -U "instagrapi[video]"
           pip install --no-deps "moviepy==2.2.1"
+
+      - name: Portadas (frame t=3s de cada MP4)
+        run: |
+          for f in ./*.mp4; do ffmpeg -y -v error -ss 3 -i "$f" -frames:v 1 "${f%.mp4}-cover.jpg"; done
+          ls ./*-cover.jpg
 
       - name: Publicar reel + 3 stories
         env:
