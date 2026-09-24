@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 """Publica en Instagram vía instagrapi (API privada): 1 reel + 3 stories.
 
-Rotación determinista sin repeticiones: reel = doy%12, stories = +3/+6/+9
-(en cualquier ventana de 3 días no se repite ningún signo).
+Aleatorio con memoria y sin repeticiones: cada fecha baraja los 12 signos
+(seed=fecha) y publica los 8 menos recientes (historial recalculado desde
+2026-01-01: determinista, sin estado en disco). Solape mínimo con el día
+anterior (4/8, inevitable publicando 8 de 12 al día) y los 2 reels siempre
+entre los menos usados → el reel nunca repite el de ayer. Dentro de cada
+pase los 4 signos son distintos (reel nunca en sus stories).
 Sin LLM: caption reconstruido del corpus (vendor/corpus) con las mismas
 fórmulas del generador (generar-reel.mjs).
 
@@ -17,6 +21,7 @@ Uso:
 import argparse
 import json
 import os
+import random
 import sys
 import time
 from datetime import datetime, timezone
@@ -31,6 +36,7 @@ GLYPH = {'aries': '♈', 'tauro': '♉', 'geminis': '♊', 'cancer': '♋',
          'sagitario': '♐', 'capricornio': '♑', 'acuario': '♒', 'piscis': '♓'}
 LUNA_KW = {'nueva': ['siembra', 'intención'], 'creciente': ['empuja', 'avanza'],
            'llena': ['culmina', 'celebra'], 'menguante': ['suelta', 'ordena']}
+EPOCH_ORD = datetime(2026, 1, 1).toordinal()
 
 
 def load(name):
@@ -81,6 +87,22 @@ def build_caption(slug, meta, corpus, doy, fecha):
             f"#signosdelzodiaco #horoscopodiario #astrologiaespañol")
 
 
+def day_picks(signs, target_ord):
+    """8 signos del día: los menos recientes (baraja diaria con seed=fecha
+    como desempate). Recalcula el historial desde EPOCH_ORD: determinista."""
+    last_used = {}
+    eight = []
+    for ord_ in range(EPOCH_ORD, target_ord + 1):
+        rng = random.Random(str(ord_))
+        order = signs[:]
+        rng.shuffle(order)
+        pos = {s: i for i, s in enumerate(order)}
+        eight = sorted(signs, key=lambda s: (last_used.get(s, -1), pos[s]))[:8]
+        for s in eight:
+            last_used[s] = ord_
+    return eight
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--date', default=None)
@@ -105,11 +127,14 @@ def main():
     # Igual que generar-reel.mjs: 1-ene = día 1 (no día 0)
     doy = (d - datetime(Y - 1, 12, 31, tzinfo=timezone.utc)).days
 
-    # Dos slots al día con bloques disjuntos: base mañana=2*doy, tarde=2*doy+1.
-    # Bloques consecutivos nunca comparten signo (residuos mod 3 distintos).
-    base = 2 * doy + int(a.slot)
-    reel = signs[base % 12]
-    stories = [signs[(base + off) % 12] for off in (3, 6, 9)]
+    # Dos slots al día con bloques disjuntos del mismo 8 (mañana=reel uno de
+    # los 2 menos usados + 3 stories, tarde=el otro + otras 3). Sin solape
+    # mañana↔tarde y solape mínimo con el día anterior.
+    eight = day_picks(signs, datetime(Y, M, D).toordinal())
+    if a.slot == '0':
+        reel, stories = eight[0], eight[2:5]
+    else:
+        reel, stories = eight[1], eight[5:8]
     assert len({reel, *stories}) == 4, 'rotación rota'
     plan = [('REELS', reel, build_caption(reel, meta, corpus, doy, fecha))]
     plan += [('STORIES', s, None) for s in stories]
@@ -169,7 +194,3 @@ def main():
               file=sys.stderr)
         sys.exit(1)
     print('\nHecho: 1 reel + 3 stories.')
-
-
-if __name__ == '__main__':
-    main()
