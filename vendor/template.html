@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="es" data-resolution="portrait">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1080, height=1920" />
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,800&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#0B0B2E;font-family:'Nunito',sans-serif}
+#root{width:1080px;height:1920px;position:relative;overflow:hidden;background:radial-gradient(ellipse 1100px 800px at 50% -10%, #3B2A8A 0%, #1B1B4D 42%, #0B0B2E 100%)}
+.clip{position:absolute;inset:0;width:1080px;height:1920px;overflow:hidden}
+.stars{position:absolute;inset:0;pointer-events:none}
+.star{position:absolute;background:#fff;border-radius:9999px;opacity:.8;animation:twinkle 2.8s ease-in-out infinite}
+@keyframes twinkle{0%,100%{opacity:.25;transform:scale(.75)}50%{opacity:1;transform:scale(1.15)}}
+.ring{position:absolute;border:1.5px dashed rgba(255,255,255,.18);border-radius:9999px;top:50%;left:50%;transform:translate(-50%,-50%)}
+@keyframes floaty{0%,100%{transform:translateY(0) rotate(var(--r,0deg))}50%{transform:translateY(-18px) rotate(var(--r,0deg))}}
+@keyframes floaty2{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.floaty{animation:floaty 5s ease-in-out infinite}
+.floaty2{animation:floaty2 4.2s ease-in-out infinite}
+.planet-img{position:absolute;filter:drop-shadow(0 8px 18px rgba(0,0,0,.45))}
+@keyframes heartbeat{0%,100%{transform:scale(1)}50%{transform:scale(1.09)}}
+.heartbeat{animation:heartbeat 1.45s ease-in-out infinite;transform-origin:center}
+.header{position:absolute;top:150px;left:30px;right:30px;display:flex;align-items:center;justify-content:space-between;z-index:10}
+.header-left{display:flex;align-items:center;gap:12px}
+.header-logo{width:56px;height:56px;border-radius:9999px;background:#fff;padding:0;flex-shrink:0;overflow:hidden}
+.header-logo img{width:64px;height:64px;max-width:none;margin:-4px 0 0 -4px;display:block}
+.header-title{color:#fff;font-weight:800;letter-spacing:.14em;font-size:24px}
+.header-date{background:#3B2A5A;border:1.5px solid rgba(255,255,255,.18);color:#FBBF24;font-weight:800;font-size:22px;padding:12px 20px;border-radius:9999px;letter-spacing:.06em}
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="variant-b" data-start="0" data-duration="25" data-width="1080" data-height="1920">
+<audio id="bgm" class="clip" data-start="0" data-duration="25" data-track-index="5" src="assets/bgm.mp3" preload="auto"></audio>
+
+<div class="clip" data-start="0" data-duration="6.25" data-track-index="0" id="b-clip1">
+  <div class="stars" id="bstars1"></div>
+  <div id="b1-ring1" class="ring" style="width:620px;height:620px"></div>
+  <div id="b1-ring2" class="ring" style="width:820px;height:820px;opacity:.55"></div>
+  <div id="b1-ring3" class="ring" style="width:980px;height:980px;opacity:.28"></div>
+  <div class="header" id="b1-header"><div class="header-left"><img src="https://diarioastral.com/img/logo.png" class="header-logo" width="56" height="56" alt=""/><span class="header-title">DIARIO ASTRAL</span></div></div>
+  <div id="b1-center" data-layout-allow-overlap style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;width:860px">
+    <div style="font-size:56px;letter-spacing:.30em;text-transform:uppercase;color:#FBBF24;font-weight:800">Horóscopo hoy</div>
+    <div id="b1-fecha" style="font-size:92px;letter-spacing:.10em;color:#FBBF24;font-weight:800;margin-top:28px;text-align:center">22 · SEP · 2026</div>
+    <div style="width:280px;height:280px;border-radius:42px;background:#fff;display:grid;place-items:center;margin:22px auto 0;box-shadow:12px 12px 0 #6D28D9;border:2.5px solid rgba(255,255,255,.9)"><span style="font-size:168px;color:#16A34A;line-height:1">♉︎</span></div>
+    <div style="font-family:Fraunces,serif;font-weight:800;font-size:132px;color:#fff;margin-top:18px;letter-spacing:-.02em;line-height:1">Tauro</div>
+    <div style="font-size:56px;color:rgba(255,255,255,.75);font-weight:700;margin-top:16px;letter-spacing:.06em">20 ABR — 20 MAY · TIERRA · Regente Venus</div>
+    <div style="margin-top:28px;display:flex;flex-direction:column;gap:16px;align-items:stretch;width:fit-content;margin-left:auto;margin-right:auto">
+      <span id="b1-chip-numero" style="background:#FBBF24;color:#1B1B4D;font-weight:800;font-size:48px;padding:26px 48px;border-radius:9999px">Número 87</span>
+      <span style="background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.18);color:#fff;font-weight:700;font-size:48px;padding:26px 48px;border-radius:9999px">Color dorado</span>
+      <span id="b1-chip-luna" style="background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.18);color:#fff;font-weight:700;font-size:48px;padding:26px 48px;border-radius:9999px">Luna llena 84%</span>
+    </div>
+  </div>
+  <div id="b1-bottom" style="position:absolute;bottom:72px;left:36px;right:36px;text-align:center">
+    <div id="b1-quote" style="font-size:38px;line-height:1.32;color:rgba(255,255,255,.92);font-weight:600;max-width:880px;margin:0 auto;min-height:100px">“Hoy Tauro <b style="color:#FBBF24">saborea el momento</b> y por eso rinde más.”</div>
+    <div style="margin-top:20px;display:inline-flex;background:#fff;color:#1B1B4D;font-weight:800;font-size:28px;padding:18px 34px;border-radius:9999px;box-shadow:0 10px 30px rgba(0,0,0,.35)">diarioastral.com/horoscopo/tauro-hoy.html →</div>
+  </div>
+</div>
+
+<div class="clip" data-start="6.25" data-duration="6.25" data-track-index="0" id="b-clip2">
+  <div class="stars" id="bstars2"></div>
+  <div class="header"><div class="header-left"><img src="https://diarioastral.com/img/logo.png" class="header-logo" width="56" height="56" alt=""/><span class="header-title">DIARIO ASTRAL</span></div></div>
+  <div id="b2-card" style="position:absolute;top:320px;left:50%;transform:translateX(-50%);width:1020px;background:rgba(255,248,236,.97);border:3.5px solid #FBBF24;border-radius:42px;padding:64px 52px;box-shadow:14px 14px 0 rgba(0,0,0,.28);overflow:visible">
+    <img src="https://diarioastral.com/img/planetas/marte.svg" class="planet-img floaty" style="position:absolute;right:-22px;top:-26px;width:104px;height:104px;--r:-5deg" alt="Marte"/>
+    <div style="display:flex;align-items:center;gap:20px">
+      <div class="heartbeat" style="width:110px;height:110px;border-radius:26px;background:#1B1B4D;display:grid;place-items:center;font-size:54px;color:#FBBF24;flex-shrink:0">⚡</div>
+      <div><div style="font-weight:800;letter-spacing:.16em;font-size:26px;color:#6D28D9">02 — ENERGÍA DEL DÍA</div><div style="font-family:Fraunces,serif;font-weight:800;font-size:74px;line-height:1;color:#1B1B4D">Energía del día</div></div>
+      <div id="b2-pct" style="margin-left:auto;background:#1B1B4D;color:#FBBF24;font-weight:800;font-size:30px;padding:16px 24px;border-radius:9999px">68%</div>
+    </div>
+    <div style="margin-top:28px;height:14px;border-radius:9999px;background:rgba(27,27,77,.08);overflow:hidden"><div id="b2-bar" style="width:68%;height:100%;background:#6D28D9;border-radius:9999px;transform-origin:left"></div></div>
+    <p style="font-size:58px;line-height:1.22;color:#1B1B4D;margin-top:32px;font-weight:800">Si la ansiedad aprieta, toca algo <span style="background:#FBBF24;padding:4px 12px;border-radius:12px">real</span>:</p>
+    <p style="font-size:42px;line-height:1.28;color:rgba(27,27,77,.72);margin-top:16px;font-weight:600">cocina, jardinería, ordenar un cajón. Lo manual te devuelve al presente mejor que cualquier app.</p>
+    <div style="margin-top:30px;display:flex;gap:16px;flex-wrap:wrap">
+      <span style="background:#1B1B4D;color:#fff;font-weight:800;font-size:28px;padding:16px 26px;border-radius:9999px">✦ Pisa firme</span>
+      <span style="background:#fff;border:2.5px solid rgba(27,27,77,.12);color:#1B1B4D;font-weight:700;font-size:28px;padding:16px 26px;border-radius:9999px">Luna llena · ritual: celebra</span>
+    </div>
+  </div>
+  <div style="position:absolute;bottom:72px;left:36px;right:36px;display:flex;justify-content:space-between;align-items:center">
+    <div style="display:flex;gap:12px"><span style="width:68px;height:10px;border-radius:9999px;background:rgba(255,255,255,.25)"></span><span style="width:68px;height:10px;border-radius:9999px;background:#FBBF24"></span><span style="width:68px;height:10px;border-radius:9999px;background:rgba(255,255,255,.25)"></span><span style="width:68px;height:10px;border-radius:9999px;background:rgba(255,255,255,.25)"></span></div>
+    <span style="color:rgba(255,255,255,.75);font-weight:700;font-size:24px">♉ Tauro · Diario Astral</span>
+  </div>
+</div>
+
+<div class="clip" data-start="12.5" data-duration="6.25" data-track-index="0" id="b-clip3">
+  <div class="stars" id="bstars3"></div>
+  <div class="header"><div class="header-left"><img src="https://diarioastral.com/img/logo.png" class="header-logo" width="56" height="56" alt=""/><span class="header-title">DIARIO ASTRAL</span></div></div>
+  <div id="b3-card" style="position:absolute;top:320px;left:50%;transform:translateX(-50%);width:1020px;background:#fff;border:3.5px solid #DDD6FE;border-radius:42px;padding:64px 52px;box-shadow:14px 14px 0 #6D28D9;overflow:visible">
+    <img src="https://diarioastral.com/img/planetas/venus.svg" class="planet-img floaty2" style="position:absolute;right:-22px;top:-26px;width:104px;height:104px" alt="Venus"/>
+    <div style="display:flex;align-items:center;gap:20px">
+      <div class="heartbeat" style="width:110px;height:110px;border-radius:26px;background:#DBEAFE;border:2.5px solid #3B82F6;display:grid;place-items:center;font-size:54px;animation-delay:.25s">♥</div>
+      <div><div style="font-weight:800;letter-spacing:.16em;font-size:26px;color:#3B82F6">03 — AMOR</div><div style="font-family:Fraunces,serif;font-weight:800;font-size:74px;line-height:1;color:#1B1B4D">Amor</div></div>
+      <div id="b3-pct" style="margin-left:auto;background:#DBEAFE;color:#1B1B4D;font-weight:800;font-size:30px;padding:16px 24px;border-radius:9999px;border:1.5px solid #3B82F6">74%</div>
+    </div>
+    <div style="margin-top:28px;height:14px;border-radius:9999px;background:rgba(27,27,77,.08);overflow:hidden"><div id="b3-bar" style="width:74%;height:100%;background:#3B82F6;border-radius:9999px;transform-origin:left"></div></div>
+    <p style="font-size:60px;line-height:1.18;color:#1B1B4D;margin-top:32px;font-weight:800">Regálate primero: date el capricho que siempre pospones.</p>
+    <p style="font-size:40px;line-height:1.30;color:rgba(27,27,77,.68);margin-top:18px;font-weight:600">Quien se quiere bien, quiere mejor a los demás. Tu sensualidad hoy es tranquila — un gesto vale más que mil palabras.</p>
+    <div style="margin-top:28px;background:#1B1B4D;color:#fff;border-radius:24px;padding:26px 28px;display:flex;gap:18px;align-items:center">
+      <span style="font-size:46px">💌</span><span style="font-size:32px;line-height:1.30"><b style="color:#FBBF24">Parejas:</b> plan casero > plan grande. <span style="color:rgba(255,255,255,.7)">Móvil a un lado.</span></span>
+    </div>
+  </div>
+  <div style="position:absolute;bottom:72px;left:36px;right:36px;display:flex;justify-content:space-between;align-items:center">
+    <div style="display:flex;gap:12px"><span style="width:68px;height:10px;border-radius:9999px;background:rgba(255,255,255,.25)"></span><span style="width:68px;height:10px;border-radius:9999px;background:rgba(255,255,255,.25)"></span><span style="width:68px;height:10px;border-radius:9999px;background:#FBBF24"></span><span style="width:68px;height:10px;border-radius:9999px;background:rgba(255,255,255,.25)"></span></div>
+    <span style="color:rgba(255,255,255,.75);font-weight:700;font-size:24px">♉ Tauro · Diario Astral</span>
+  </div>
+</div>
+
+<div class="clip" data-start="18.75" data-duration="6.25" data-track-index="0" id="b-clip4">
+  <div class="stars" id="bstars4"></div>
+  <div class="header"><div class="header-left"><img src="https://diarioastral.com/img/logo.png" class="header-logo" width="56" height="56" alt=""/><span class="header-title">DIARIO ASTRAL</span></div></div>
+  <div id="b4-card" style="position:absolute;top:320px;left:50%;transform:translateX(-50%);width:1020px;background:#FFF8EC;border:3.5px solid #FBBF24;border-radius:42px;padding:64px 52px;box-shadow:14px 14px 0 #D97706;overflow:visible">
+    <img src="https://diarioastral.com/img/planetas/jupiter.svg" class="planet-img floaty" style="position:absolute;right:-22px;top:-26px;width:104px;height:104px;--r:4deg" alt="Júpiter"/>
+    <div style="display:flex;align-items:center;gap:20px">
+      <div class="heartbeat" style="width:110px;height:110px;border-radius:26px;background:#fff;border:2.5px solid #D97706;display:grid;place-items:center;font-size:54px;animation-delay:.5s">💼</div>
+      <div><div style="font-weight:800;letter-spacing:.16em;font-size:26px;color:#D97706">04 — TRABAJO Y DINERO</div><div style="font-family:Fraunces,serif;font-weight:800;font-size:62px;line-height:1;color:#1B1B4D">Trabajo y dinero</div></div>
+      <div id="b4-pct" style="margin-left:auto;background:#FFF8EC;border:2.5px solid #D97706;color:#1B1B4D;font-weight:800;font-size:30px;padding:16px 24px;border-radius:9999px">62%</div>
+    </div>
+    <div style="margin-top:28px;height:14px;border-radius:9999px;background:rgba(27,27,77,.08);overflow:hidden"><div id="b4-bar" style="width:62%;height:100%;background:#D97706;border-radius:9999px;transform-origin:left"></div></div>
+    <p style="font-size:54px;line-height:1.20;color:#1B1B4D;margin-top:32px;font-weight:800">Tu fiabilidad hoy es tu tarjeta: <span style="background:#FBBF24;padding:4px 12px;border-radius:12px">entrega antes de tiempo</span>.</p>
+    <p style="font-size:40px;line-height:1.30;color:rgba(27,27,77,.65);margin-top:16px;font-weight:600">Aunque sea un detalle. Quien cumple sin ruido, repite. Pide por escrito y con cifras.</p>
+    <div style="margin-top:28px;display:grid;grid-template-columns:1fr 1fr;gap:18px">
+      <div style="background:#1B1B4D;color:#fff;border-radius:24px;padding:24px;text-align:center"><div style="font-size:22px;letter-spacing:.14em;color:#FBBF24;font-weight:800">NÚMERO</div><div id="b4-numero" style="font-family:Fraunces,serif;font-weight:800;font-size:82px;line-height:1;margin-top:6px">87</div></div>
+      <div style="background:#fff;border:2.5px solid rgba(27,27,77,.12);border-radius:24px;padding:24px;text-align:center"><div style="font-size:22px;letter-spacing:.14em;color:rgba(27,27,77,.5);font-weight:800">COLOR</div><div style="font-family:Fraunces,serif;font-weight:800;font-size:52px;color:#1B1B4D;margin-top:4px">dorado</div><div style="width:56px;height:14px;border-radius:9999px;background:#FBBF24;margin:10px auto 0"></div></div>
+    </div>
+    <div style="margin-top:22px;background:#1B1B4D;color:#fff;border-radius:24px;padding:20px;text-align:center;font-weight:800;font-size:26px">diarioastral.com · horóscopo completo →</div>
+  </div>
+  <div style="position:absolute;bottom:72px;left:36px;right:36px;display:flex;justify-content:space-between;align-items:center">
+    <div style="display:flex;gap:12px"><span style="width:68px;height:10px;border-radius:9999px;background:rgba(255,255,255,.25)"></span><span style="width:68px;height:10px;border-radius:9999px;background:rgba(255,255,255,.25)"></span><span style="width:68px;height:10px;border-radius:9999px;background:rgba(255,255,255,.25)"></span><span style="width:68px;height:10px;border-radius:9999px;background:#FBBF24"></span></div>
+    <span style="color:#FBBF24;font-weight:800;font-size:24px">✦ Diario Astral</span>
+  </div>
+</div>
+
+</div>
+<script>
+function stars(id,n,seed){const c=document.getElementById(id);if(!c)return;let s=seed;function rnd(){s=(s*1664525+1013904223)>>>0;return s/4294967296}for(let i=0;i<n;i++){const el=document.createElement('span');el.className='star';const sz=(rnd()*2.4+1).toFixed(1);const dur=(2+rnd()*2.6).toFixed(2);const delay=(rnd()*2.8).toFixed(2);el.style.cssText=`width:${sz}px;height:${sz}px;left:${(rnd()*100).toFixed(2)}%;top:${(rnd()*100).toFixed(2)}%;animation-delay:${delay}s;animation-duration:${dur}s`;c.appendChild(el)}}
+stars('bstars1',60,101);stars('bstars2',60,102);stars('bstars3',60,103);stars('bstars4',60,104);
+const tl=gsap.timeline({paused:true});
+window.__timelines=window.__timelines||{};
+window.__timelines["variant-b"]=tl;
+tl.fromTo("#b1-center",{scale:.85,autoAlpha:1},{scale:1,autoAlpha:1,duration:.7,ease:"power3.out"},0);
+tl.fromTo("#b1-header",{y:-14,autoAlpha:1},{y:0,autoAlpha:1,duration:.45},0);
+tl.fromTo(".header",{y:-14,autoAlpha:1},{y:0,autoAlpha:1,duration:.45},0);
+tl.fromTo("#b1-bottom",{y:22,autoAlpha:1},{y:0,autoAlpha:1,duration:.5},.3);
+tl.fromTo("#b1-ring1",{rotation:0},{rotation:24,duration:6.25,ease:"none"},0);
+tl.fromTo("#b1-ring2",{rotation:0},{rotation:-18,duration:6.25,ease:"none"},0);
+// Portada: Número y Luna desde 0 + typewriter cita (genérico para cualquier signo/número/luna)
+(() => { const el=document.getElementById("b1-chip-numero"); if(!el) return; const m=el.textContent.match(/\d+/); if(!m) return; const t=parseInt(m[0],10); const pre=el.textContent.slice(0, el.textContent.indexOf(m[0])); const suf=el.textContent.slice(el.textContent.indexOf(m[0])+m[0].length); const o={v:0}; tl.to(o,{v:t,duration:1.0,ease:"power2.out",onStart:()=>{el.textContent=pre+"0"+suf;},onUpdate:()=>el.textContent=pre+Math.round(o.v)+suf},0.9); })();
+(() => { const el=document.getElementById("b1-chip-luna"); if(!el) return; const m=el.textContent.match(/(\d+)%/); if(!m) return; const t=parseInt(m[1],10); const pre=el.textContent.slice(0, el.textContent.indexOf(m[0])); const suf="%"; const o={v:0}; tl.to(o,{v:t,duration:1.1,ease:"power2.out",onStart:()=>{el.textContent=pre+"0%";},onUpdate:()=>el.textContent=pre+Math.round(o.v)+suf},1.0); })();
+(() => { const el=document.getElementById("b1-quote"); if(!el) return; const full=el.textContent; const o={p:0}; tl.to(o,{p:full.length,duration:1.7,ease:"none",onStart:()=>{el.textContent="";el.style.borderRight="3px solid #FBBF24";},onUpdate:()=>{ const n=Math.round(o.p); el.textContent=full.slice(0,n); if(n>=full.length) el.style.borderRight="none"; }},1.1); })();
+tl.fromTo("#b2-card",{y:70,autoAlpha:0,rotation:-1},{y:0,autoAlpha:1,rotation:0,duration:.65,ease:"power3.out"},6.45);
+tl.fromTo("#b3-card",{y:70,autoAlpha:0,rotation:1},{y:0,autoAlpha:1,rotation:0,duration:.65,ease:"power3.out"},12.7);
+tl.fromTo("#b4-card",{y:70,autoAlpha:0},{y:0,autoAlpha:1,duration:.65,ease:"power3.out"},18.95);
+// Barras + números desde 0 (determinista, sin Math.random)
+function animateNumber(id, suffix, time){
+  const el=document.getElementById(id); if(!el) return;
+  const target=parseInt(el.textContent.replace(/\D/g,''),10);
+  if(isNaN(target)) return;
+  el.textContent='0'+(suffix||'');
+  const obj={v:0};
+  tl.to(obj,{v:target,duration:1.1,ease:"power2.out",onUpdate:()=>{el.textContent=Math.round(obj.v)+(suffix||'');}}, time);
+}
+tl.fromTo("#b2-bar",{scaleX:0},{scaleX:1,duration:1.0,ease:"power3.out"},6.8);
+animateNumber("b2-pct","%",6.8);
+tl.fromTo("#b3-bar",{scaleX:0},{scaleX:1,duration:1.0,ease:"power3.out"},12.9);
+animateNumber("b3-pct","%",12.9);
+tl.fromTo("#b4-bar",{scaleX:0},{scaleX:1,duration:1.0,ease:"power3.out"},19.0);
+animateNumber("b4-pct","%",19.0);
+animateNumber("b4-numero","",19.2);
+const bgm=document.getElementById('bgm'); if(bgm){ bgm.volume=0; tl.to(bgm,{volume:0.32,duration:0.8,ease:"power2.out"},0); tl.to(bgm,{volume:0.0,duration:1.2,ease:"power2.in"},23.8); }
+tl.seek(0);
+</script>
+</body>
+</html>
+
+
+
