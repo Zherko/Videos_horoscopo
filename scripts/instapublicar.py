@@ -106,6 +106,13 @@ def day_picks(signs, target_ord):
 
 
 def main():
+    # Consola Windows (cp1252) rompe los prints con emoji tras publicar:
+    # un crash ahí finge ERROR con exit 1 aunque la subida fue bien.
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
     ap = argparse.ArgumentParser()
     ap.add_argument('--date', default=None)
     ap.add_argument('--dry-run', action='store_true')
