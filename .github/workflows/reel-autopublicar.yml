@@ -65,6 +65,7 @@ jobs:
         env:
           IG_SESSION: ${{ secrets.IG_SESSION }}
         run: |
+          echo ">> DIAG ARGS a ejecutar"
           FECHA="${{ inputs.date }}"
           if [ -z "$FECHA" ]; then FECHA=$(date +%F); fi
           SLOT="${{ inputs.slot }}"
@@ -76,4 +77,5 @@ jobs:
           if [ -z "$SLOT" ]; then SLOT="0"; fi
           ARGS="--date=$FECHA --slot=$SLOT"
           if [ "${{ inputs.dry_run }}" = "true" ]; then ARGS="$ARGS --dry-run"; fi
+          echo ">> DIAG ARGS=$ARGS :: $(python --version 2>&1) :: $(ls scripts/instapublicar.py)"
           python scripts/instapublicar.py $ARGS
