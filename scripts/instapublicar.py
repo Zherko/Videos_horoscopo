@@ -9,6 +9,9 @@ entre los menos usados → el reel nunca repite el de ayer. Dentro de cada
 pase los 4 signos son distintos (reel nunca en sus stories).
 El reel sube con portada propia ({fecha}-{signo}-cover.jpg, frame t=3s);
 sin cover cae a la miniatura automática. Stories sin portada.
+Blindaje: antes de subir lee los reels ya en vivo hoy y omite el que
+exista (anti-duplicados; sin lectura no publica), al final verifica que
+el reel quedó en vivo y escribe veredicto.txt (OK/FALLO) para la alarma.
 Sin LLM: caption reconstruido del corpus (vendor/corpus) con las mismas
 fórmulas del generador (generar-reel.mjs).
 
@@ -24,6 +27,7 @@ import argparse
 import json
 import os
 import random
+import re
 import sys
 import time
 from datetime import datetime, timezone
@@ -39,6 +43,12 @@ GLYPH = {'aries': '♈', 'tauro': '♉', 'geminis': '♊', 'cancer': '♋',
 LUNA_KW = {'nueva': ['siembra', 'intención'], 'creciente': ['empuja', 'avanza'],
            'llena': ['culmina', 'celebra'], 'menguante': ['suelta', 'ordena']}
 EPOCH_ORD = datetime(2026, 1, 1).toordinal()
+try:
+    MADRID_TZ = ZoneInfo('Europe/Madrid')
+except Exception:
+    # Sin base tzdata (Windows sin pip tzdata): los pases son 10:00/16:00,
+    # lejos de medianoche, así que UTC no cambia el día.
+    MADRID_TZ = timezone.utc
 
 
 def load(name):
@@ -105,6 +115,33 @@ def day_picks(signs, target_ord):
     return eight
 
 
+def escribir_veredicto(txt):
+    try:
+        (ROOT / 'veredicto.txt').write_text(txt + '\n', encoding='utf-8')
+    except Exception:
+        pass
+
+
+def publicados_hoy(cl, signs, fecha):
+    """Slugs con reel en vivo hoy: caption con #slug y taken_at de hoy
+    (Europe/Madrid). Las stories no se pueden comprobar (no están en el
+    feed y caducan en 24h): solo cubre reels."""
+    live = set()
+    for m in cl.user_medias(cl.user_id, amount=25):
+        taken = m.taken_at
+        try:
+            madrid = (taken if taken.tzinfo else taken.replace(tzinfo=timezone.utc)).astimezone(MADRID_TZ)
+        except Exception:
+            continue
+        if madrid.strftime('%Y-%m-%d') != fecha:
+            continue
+        cap = m.caption_text or ''
+        for s in signs:
+            if re.search(fr'#{s}(?![a-z0-9])', cap):
+                live.add(s)
+    return live
+
+
 def main():
     # Consola Windows (cp1252) rompe los prints con emoji tras publicar:
     # un crash ahí finge ERROR con exit 1 aunque la subida fue bien.
@@ -167,6 +204,8 @@ def main():
         print('\nHecho (dry-run): 1 reel + 3 stories.')
         return
 
+    escribir_veredicto(f'INICIO {fecha} slot={a.slot} dry={a.dry_run}')
+
     session = os.environ.get('IG_SESSION')
     if not session:
         print('Falta IG_SESSION en el entorno.', file=sys.stderr)
@@ -188,14 +227,38 @@ def main():
               file=sys.stderr)
         sys.exit(1)
 
+    # Anti-duplicados: lee qué reels ya están en vivo hoy (3 intentos);
+    # sin lectura no se publica. El reel en vivo se omite; las stories
+    # siempre se intentan (no son comprobables por API).
+    live = set()
+    for intento in range(1, 4):
+        try:
+            live = publicados_hoy(cl, signs, fecha)
+            break
+        except Exception as e:
+            print(f'Aviso: sin lectura de publicados (intento {intento}/3): {type(e).__name__}.')
+            time.sleep(10)
+    else:
+        msg = 'ERROR: sin lectura de publicados, no se publica (anti-duplicados).'
+        print(msg, file=sys.stderr)
+        escribir_veredicto(f'FALLO {fecha} slot={a.slot} sin-lectura')
+        sys.exit(1)
+    ya = [s for _, s, _ in plan if s in live]
+    if ya:
+        print(f'Ya en vivo, se omiten: {", ".join(ya)}')
+
     try:
         assert hasattr(cl, 'clip_upload') and hasattr(cl, 'video_upload_to_story')
         for kind, slug, caption in plan:
             video = str(ROOT / f'{fecha}-{slug}.mp4')
             if kind == 'REELS':
+                if slug in live:
+                    print(f'(omitido, ya en vivo) Reel {slug}')
+                    continue
                 cover = ROOT / f'{fecha}-{slug}-cover.jpg'
                 m = cl.clip_upload(video, caption, thumbnail=(str(cover) if cover.exists() else None))
                 print(f'✅ Reel {slug}: pk={m.pk}')
+                live.add(slug)
             else:
                 cl.video_upload_to_story(video)
                 print(f'✅ Story {slug} publicada')
@@ -204,5 +267,21 @@ def main():
         print(f'ERROR publicando ({type(e).__name__}: {e}). '
               'Si pide verificación, hazla en el móvil y reintenta.',
               file=sys.stderr)
+        escribir_veredicto(f'FALLO {fecha} slot={a.slot} {type(e).__name__}')
         sys.exit(1)
+    # Verificación final: el reel debe estar en vivo (relecturas con espera).
+    ok = False
+    for _ in range(3):
+        time.sleep(20)
+        try:
+            if reel in publicados_hoy(cl, signs, fecha):
+                ok = True
+                break
+        except Exception:
+            pass
+    if not ok:
+        print(f'ERROR: el reel {reel} no aparece en vivo tras publicar.', file=sys.stderr)
+        escribir_veredicto(f'FALLO {fecha} slot={a.slot} reel-no-visible')
+        sys.exit(1)
+    escribir_veredicto(f'OK {fecha} slot={a.slot} reel={reel}')
     print('\nHecho: 1 reel + 3 stories.')
