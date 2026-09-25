@@ -1,0 +1,79 @@
+# Autopublica en Instagram vía instagrapi (API privada): 1 reel + 3 stories.
+# Dos pases al día (10:00 y 16:00 Madrid = 08:00 y 14:00 UTC en verano;
+# en invierno caen 09:00 y 15:00 locales). Al día: 2 reels + 6 stories.
+# El reel sube con portada propia (frame t=3s de su MP4); sin cover, auto.
+# Requiere secret: IG_SESSION (contenido de session.json generado en local).
+# La vía oficial (scripts/autopublicar.mjs, Graph API) queda aparcada hasta que
+# prospere la apelación de la cuenta de desarrollador (ver git log).
+name: reel-autopublicar
+
+on:
+  schedule:
+    - cron: "0 8 * * *"   # slot 0 (mañana)
+    - cron: "0 14 * * *"  # slot 1 (tarde)
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "Fecha YYYY-MM-DD (Europe/Madrid, vacío = hoy)"
+        required: false
+        type: string
+      dry_run:
+        description: "Solo validar, no publicar"
+        required: false
+        default: true
+        type: boolean
+      slot:
+        description: "0=mañana, 1=tarde"
+        required: false
+        default: "0"
+        type: choice
+        options: ["0", "1"]
+
+concurrency:
+  group: reel-autopublicar
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    env:
+      TZ: Europe/Madrid
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: FFmpeg (miniaturas para la subida)
+        run: which ffmpeg || (sudo apt-get update && sudo apt-get install -y ffmpeg)
+
+      - name: Instalar instagrapi
+        run: |
+          pip install -U "instagrapi[video]"
+          pip install --no-deps "moviepy==2.2.1"
+
+      - name: Portadas (frame t=3s de cada MP4)
+        run: |
+          for f in ./*.mp4; do ffmpeg -y -v error -ss 3 -i "$f" -frames:v 1 "${f%.mp4}-cover.jpg"; done
+          ls ./*-cover.jpg
+
+      - name: Publicar reel + 3 stories
+        env:
+          IG_SESSION: ${{ secrets.IG_SESSION }}
+        run: |
+          FECHA="${{ inputs.date }}"
+          if [ -z "$FECHA" ]; then FECHA=$(date +%F); fi
+          SLOT="${{ inputs.slot }}"
+          # En cron (sin inputs) el slot va por hora: 08 UTC=mañana, 14 UTC=tarde
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            H=$(date -u +%H)
+            if [ "$H" = "14" ]; then SLOT="1"; else SLOT="0"; fi
+          fi
+          if [ -z "$SLOT" ]; then SLOT="0"; fi
+          ARGS="--date=$FECHA --slot=$SLOT"
+          if [ "${{ inputs.dry_run }}" = "true" ]; then ARGS="$ARGS --dry-run"; fi
+          python scripts/instapublicar.py $ARGS
