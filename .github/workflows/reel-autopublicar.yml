@@ -83,9 +83,11 @@ jobs:
 
   # Segunda pasada en VM fresca: si `publicar` fantasmeó o falló a medias,
   # el script (idempotente) completa lo que falte. Sin veredicto OK → issue.
+  # OJO: inputs booleanos NO se comparan con 'true' entrecomillado en `if:`
+  # (boolean true != string 'true'); el modo dry se decide en bash, no aquí.
   verificar:
     needs: [publicar]
-    if: ${{ always() && needs.publicar.result != 'cancelled' && inputs.dry_run != 'true' }}
+    if: ${{ always() && needs.publicar.result != 'cancelled' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     permissions:
@@ -125,13 +127,16 @@ jobs:
             if [ "$H" = "14" ]; then SLOT="1"; else SLOT="0"; fi
           fi
           if [ -z "$SLOT" ]; then SLOT="0"; fi
-          python scripts/instapublicar.py --date=$FECHA --slot=$SLOT
+          ARGS="--date=$FECHA --slot=$SLOT"
+          if [ "${{ inputs.dry_run }}" = "true" ]; then ARGS="$ARGS --dry-run"; fi
+          python scripts/instapublicar.py $ARGS
 
       - name: Alarma si no hay veredicto OK
         if: ${{ always() && needs.publicar.result != 'cancelled' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then echo "dry-run, sin alarma"; exit 0; fi
           FECHA="${{ inputs.date }}"
           if [ -z "$FECHA" ]; then FECHA=$(date +%F); fi
           SLOT="${{ inputs.slot }}"
