@@ -285,3 +285,7 @@ def main():
         sys.exit(1)
     escribir_veredicto(f'OK {fecha} slot={a.slot} reel={reel}')
     print('\nHecho: 1 reel + 3 stories.')
+
+
+if __name__ == '__main__':
+    main()
