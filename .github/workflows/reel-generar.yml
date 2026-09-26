@@ -1,0 +1,131 @@
+# Genera los 12 reels del día (Órbita XL, determinista, CERO LLM) en paralelo
+# y deja solo los 12 MP4 nuevos (`YYYY-MM-DD-signo.mp4`), borrando los anteriores.
+# Este repo es PÚBLICO: los minutos de Actions son gratis e ilimitados.
+# El generador + corpus viven en `vendor/` (mirror sincronizado cada noche por
+# horoscopo-diario.yml desde el repo privado webAstrologia). No editar vendor a mano.
+# Probar: Actions → reel-generar → Run workflow → date=2026-09-24.
+name: reel-generar
+
+on:
+  schedule:
+    - cron: "15 23 * * *"  # tras horoscopo-diario (22:30 UTC) + sync de vendor
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "Fecha YYYY-MM-DD (Europe/Madrid, vacío = hoy)"
+        required: false
+        type: string
+
+concurrency:
+  group: reel-generar
+  cancel-in-progress: false
+
+env:
+  TZ: Europe/Madrid
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      fecha: ${{ steps.fecha.outputs.fecha }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Fecha (Europe/Madrid)
+        id: fecha
+        run: |
+          FECHA="${{ inputs.date }}"
+          if [ -z "$FECHA" ]; then FECHA=$(date +%F); fi
+          echo "fecha=$FECHA" >> "$GITHUB_OUTPUT"
+
+      - name: Generar 12 index.html (determinista, sin LLM)
+        run: |
+          mkdir -p data/corpus ".opencode/skills/reel-estilo1-orbita-xl/assets" hyperframes-reels/variant-b
+          cp vendor/corpus/*.json data/corpus/
+          cp vendor/template.html .opencode/skills/reel-estilo1-orbita-xl/template.html
+          cp vendor/bgm.mp3 .opencode/skills/reel-estilo1-orbita-xl/assets/bgm.mp3
+          cp vendor/hyperframes.json vendor/package.json vendor/meta.json hyperframes-reels/variant-b/
+          node vendor/generar-reel.mjs --date="${{ steps.fecha.outputs.fecha }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reels-html-${{ steps.fecha.outputs.fecha }}
+          path: hyperframes-reels/Reel-horoscopo diario/${{ steps.fecha.outputs.fecha }}/
+          retention-days: 1
+
+  render:
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        signo: [aries, tauro, geminis, cancer, leo, virgo, libra, escorpio, sagitario, capricornio, acuario, piscis]
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: reels-html-${{ needs.build.outputs.fecha }}
+          path: dia
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"  # hyperframes exige >=22
+
+      - name: FFmpeg + FFprobe (hyperframes los exige en PATH)
+        run: which ffmpeg ffprobe || (sudo apt-get update && sudo apt-get install -y ffmpeg)
+
+      - name: Render ${{ matrix.signo }}
+        run: |
+          FECHA="${{ needs.build.outputs.fecha }}"
+          ls dia
+          pushd "dia/${{ matrix.signo }}" > /dev/null
+          npx -y hyperframes render -o "../$FECHA - ${{ matrix.signo }}.mp4"
+          popd > /dev/null
+          ls -lh "dia/$FECHA - ${{ matrix.signo }}.mp4"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mp4-${{ matrix.signo }}
+          path: dia/${{ needs.build.outputs.fecha }} - ${{ matrix.signo }}.mp4
+          retention-days: 1
+
+  publish:
+    needs: [build, render]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: mp4-*
+          path: mp4s
+          merge-multiple: true
+
+      - name: "Publicar 12 nuevos (historial plano: un solo commit vivo)"
+        run: |
+          FECHA="${{ needs.build.outputs.fecha }}"
+          git rm -q -- *.mp4 2>/dev/null || true
+          for f in mp4s/*.mp4; do cp "$f" "./$(echo "$(basename "$f")" | tr -d ' ')"; done
+          # Guardas: sin workflow, vendor y 12 MP4, prohibido reescribir historial
+          test -f .github/workflows/reel-generar.yml
+          test -f vendor/generar-reel.mjs
+          test "$(ls ./*.mp4 | wc -l)" -eq 12
+          git add -A
+          NEW_TREE=$(git write-tree)
+          OLD_TREE=$(git rev-parse HEAD^{tree})
+          if [ "$NEW_TREE" = "$OLD_TREE" ]; then echo "sin cambios"; exit 0; fi
+          NEW_COMMIT=$(git -c user.name="astra-bot" -c user.email="astra-bot@users.noreply.github.com" commit-tree "$NEW_TREE" -m "reels-$FECHA")
+          git update-ref refs/heads/main "$NEW_COMMIT"
+          git push --force origin main
