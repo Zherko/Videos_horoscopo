@@ -1,0 +1,8 @@
+# Reconstruidos en CI desde vendor/ — no commitear
+data/
+.opencode/
+hyperframes-reels/
+mp4s/
+dia/
+# Sesión de IG: solo vive como secret, nunca en git
+session.json
